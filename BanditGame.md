@@ -384,6 +384,74 @@ vBgsyi/sN3RqRBcGU40fOoZyfAMT8s1m/uYv52O6IgeuZ/ujbjY=
 
 
 ### Nivel 18 
+Para este nivel, en nuestro directorio home, tenemos dos archivos, los cuales parecen ser los mismos, sin embargo, hay una linea que es diferente, para ello usaremos el comando diff, antes de mostrar el comando usado en este nivel, repasaremos algunas opciones mas comunes de dicho comando
+
+-u	Muestra las diferencias en formato unificado.
+-c	Muestra las diferencias en formato contextual.
+-i	Ignora las diferencias de mayúsculas y minúsculas.
+-w	Ignora los espacios en blanco.
+-b	Ignora las diferencias en la cantidad de espacios en blanco.
+-r	Compara recursivamente directorios.
+-q	Muestra solo si los archivos son diferentes.
+-s	Muestra un mensaje cuando los archivos son idénticos.
+--color	Resalta las diferencias utilizando colores.
+
+
+ ra poder ver las diferencias de los dos archivos, usamos:
+
+```
+    diff passwords.*
+```
+
+Podemos usar tambien el siguiente comando para una salida mas amigable:
+
+```
+    diff -u passwords.*
+```
+
+Tomaremos la password de la diferencia del archivo passwords.new 
+
+Password: x2gLTTjFwMOhQ8oWNbMN362QKxfRqGlO
+
+
+### Nivel 19 
+Para este nivel, solo tendremos que leer el archivo "readme", sin embargo al intentar loggearnos, nos expulsara de la sesion, pues en el archivo .bashrc se encuentra la linea:
+
+```
+    echo 'Byebye !'
+    exit 0
+```
+
+Por lo que no podriamos iniciar una terminal, para resolverlo, podemos usar el mismo comando ssh para poder ejecutar instrucciones dentro de la maquin, para ello simplemente pondremos el comando que deseamos ejecutar al final de este, por ejemplo, para poder ver los archivos
+
+
+```
+    ssh -p 2220 bandit18@bandit.labs.overthewire.org "ls -l "
+```
+
+Para poder leer el archivo "readme" usaremos el siguiente comando:
+
+```
+    ssh -p 2220 bandit18@bandit.labs.overthewire.org "cat readme"
+```
+
+Password: cGWpMaKXVwDUNgPAVJbWYuGHVn9zl3j8
+
+
+
+### Nivel  20
+Para este tenemos un archivo ejecutable "bandit20-do" que tiene el SUID bit, por lo que si lo ejecutamos podremos usar los mismos privilegios que tiene bandit20, por lo que la password del siguiente nivel se aloja en el archivo "/etc/bandit_pass/bandit20", para poder ver el contenido de este archivo, hay que ejecutar el archivo "bandit20-do"
+
+```
+    ./bandit20-do cat /etc/bandit_pass/bandit20
+```
+
+Password: 0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO
+
+### Nivel 21 
+
+
+ssh -p 2220 bandit20@bandit.labs.overthewire.org 
 
 
 
@@ -393,61 +461,6 @@ vBgsyi/sN3RqRBcGU40fOoZyfAMT8s1m/uYv52O6IgeuZ/ujbjY=
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-enviar la password de este nivel dado un rango de puertos, 31000 al 32000, para hacerloit6@bandit.labs.overthewire.org -p 2220
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-sh bandit6@bandit.labs.overthewire.org -p 2220
-i
 
 
 
