@@ -449,6 +449,41 @@ Para este tenemos un archivo ejecutable "bandit20-do" que tiene el SUID bit, por
 Password: 0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO
 
 ### Nivel 21 
+Para este nivel tenemos un archivo llamado "suconnect" el cual sigue los siguientes pasos:
+
+1. It makes a connection to localhost on the port you specify as a commandline argument. 
+2. It then reads a line of text from the connection and compares it to the password in the previous level (bandit20). 
+3. If the password is correct, it will transmit the password for the next level (bandit21).
+
+Podemos hacelo con una terminal o hacerlo con dos terminales divididas, osease, con tmux, mostraremos primero con una terminal, el comando que nos permitira primero ponernos a la escucha es el comando nc, por lo que lo pondremos a la escucha y antecediendole la password del nivel anterior, y ademas ejecutandolo en segundo plano, para ello usaremos el simbolo (&) al final del comando, tal que asi:
+
+``` 
+    echo "0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO" | nc -lnvp 4444 &
+```
+
+Despues de ello, simplemente ejecutamos despues el programa mencionado al inicio
+
+```
+    ./suconnecct 4444
+```
+
+y nos mostrara las dos passwords, la del anterior nivel y la nueva.
+Para la siguiente parte, simplemente usaremos tmux, dividiendolo en dos ventanas, para ello seguiremos el siguiente proceso
+
+1. tmux
+2. Ctrl + b - %
+3. En una terminal ejecutaremos lo siguiente: ``` echo "0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO" | nc -lnvp 4444  ```
+4. Ctrl + b - flecha derecha 
+5. En esta terminal ejecutaremos lo siguiente ``` ./suconnecct 4444 ```
+6. Nos mostrara las password del siguiente nivel
+
+Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt
+
+
+### Nivel 22
+
+
+
 
 
 ssh -p 2220 bandit20@bandit.labs.overthewire.org 
